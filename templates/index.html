@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Publication Fetcher</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .header {
+            background-color: #007bff;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .map-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .map-container img {
+            max-width: 100%;
+            height: auto;
+        }
+        .form-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .data {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .data th, .data td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Fetch Publications by Institution</h1>
+    </div>
+    <div class="map-container">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c0/Equirectangular_projection_world_map_without_borders.svg" alt="World Map">
+    </div>
+    <div class="container form-container">
+        <form method="post" class="mb-5">
+            <div class="form-group">
+                <label for="country">Country:</label>
+                <select id="country" name="country" class="form-control" required>
+                    <option value="" disabled selected>Select a country...</option>
+                    {% for country in countries %}
+                        <option value="{{ country.code }}">{{ country.code }} - {{ country.name }} ({{ country.count }} institutions)</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="institution_name">Institution Name:</label>
+                <select id="institution_name" name="institution_name" class="form-control" required disabled>
+                    <option value="" disabled selected>Select an institution...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="max_publications">Number of Publications:</label>
+                <input type="number" id="max_publications" name="max_publications" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Fetch</button>
+        </form>
+        {% if error %}
+            <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+        {% if tables %}
+            <h2>Publications</h2>
+            <a href="/download?csv_path={{ csv_path }}" class="btn btn-success mb-3">Download CSV</a>
+            <div class="table-responsive">
+                {% for table in tables %}
+                    {{ table|safe }}
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#country').select2({
+                placeholder: "Select a country",
+                allowClear: true
+            });
+
+            $('#institution_name').select2({
+                placeholder: "Select an institution",
+                allowClear: true
+            });
+
+            $('#country').change(function() {
+                var country_code = $(this).val();
+                $('#institution_name').prop('disabled', true);
+                $('#institution_name').html('<option value="" disabled selected>Loading...</option>');
+
+                $.ajax({
+                    url: '/get_institutions',
+                    data: { country_code: country_code },
+                    success: function(data) {
+                        var options = '<option value="" disabled selected>Select an institution...</option>';
+                        data.forEach(function(institution) {
+                            options += '<option value="' + institution.name + '">' + institution.name + ' (' + institution.count + ' publications)</option>';
+                        });
+                        $('#institution_name').html(options);
+                        $('#institution_name').prop('disabled', false);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

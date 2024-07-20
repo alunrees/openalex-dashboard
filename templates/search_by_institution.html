@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+
+{% block title %}Search by Institution - OpenAlex Publication Search{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <form method="post" class="mb-5">
+        <div class="form-group">
+            <label for="country">Country:</label>
+            <select id="country" name="country" class="form-control" required>
+                <option value="" disabled selected>Select a country...</option>
+                {% for country in countries %}
+                    <option value="{{ country.code }}">{{ country.code }} - {{ country.name }} ({{ country.count }} institutions)</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="institution_name">Institution Name:</label>
+            <select id="institution_name" name="institution_name" class="form-control" required disabled>
+                <option value="" disabled selected>Select an institution...</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="max_publications">Number of Publications:</label>
+            <input type="number" id="max_publications" name="max_publications" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="columns">Columns to Include:</label>
+            <button type="button" id="select-all" class="btn btn-info btn-sm mb-2">Deselect All</button>
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-check">
+                            <input class="form-check-input column-checkbox" type="checkbox" name="columns" value="Title" checked>
+                            <label class="form-check-label">Title</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input column-checkbox" type="checkbox" name="columns" value="DOI" checked>
+                            <label class="form-check-label">DOI</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input column-checkbox" type="checkbox" name="columns" value="Publication Date" checked>
+                            <label class="form-check-label">Publication Date</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input column-checkbox" type="checkbox" name="columns" value="Cited by Count" checked>
+                            <label class="form-check-label">Cited by Count</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check">
+                            <input class="form-check-input column-checkbox" type="checkbox" name="columns" value="Authors" checked>
+                            <label class="form-check-label">Authors</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input column-checkbox" type="checkbox" name="columns" value="Abstract" checked>
+                            <label class="form-check-label">Abstract</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input column-checkbox" type="checkbox" name="columns" value="Venue" checked>
+                            <label class="form-check-label">Venue</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input column-checkbox" type="checkbox" name="columns" value="Type" checked>
+                            <label class="form-check-label">Type</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check">
+                            <input class="form-check-input column-checkbox" type="checkbox" name="columns" value="Open Access" checked>
+                            <label class="form-check-label">Open Access</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input column-checkbox" type="checkbox" name="columns" value="Volume" checked>
+                            <label class="form-check-label">Volume</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input column-checkbox" type="checkbox" name="columns" value="Issue" checked>
+                            <label class="form-check-label">Issue</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input column-checkbox" type="checkbox" name="columns" value="Pages" checked>
+                            <label class="form-check-label">Pages</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-check">
+                            <input class="form-check-input column-checkbox" type="checkbox" name="columns" value="Publisher" checked>
+                            <label class="form-check-label">Publisher</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input column-checkbox" type="checkbox" name="columns" value="Language" checked>
+                            <label class="form-check-label">Language</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input column-checkbox" type="checkbox" name="columns" value="References Count" checked>
+                            <label class="form-check-label">References Count</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input column-checkbox" type="checkbox" name="columns" value="Is Retracted" checked>
+                            <label class="form-check-label">Is Retracted</label>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check">
+                            <input class="form-check-input column-checkbox" type="checkbox" name="columns" value="Is Paratext" checked>
+                            <label class="form-check-label">Is Paratext</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input column-checkbox" type="checkbox" name="columns" value="Source URL" checked>
+                            <label class="form-check-label">Source URL</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input column-checkbox" type="checkbox" name="columns" value="License" checked>
+                            <label class="form-check-label">License</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Search</button>
+    </form>
+    {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+    {% if tables %}
+        <h2>Publications</h2>
+        <a href="/download?csv_path={{ csv_path }}" class="btn btn-success mb-3">Download CSV</a>
+        <div class="table-responsive">
+            {% for table in tables %}
+                {{ table|safe }}
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const selectAllButton = document.getElementById('select-all');
+        const checkboxes = document.querySelectorAll('.column-checkbox');
+
+        selectAllButton.addEventListener('click', function() {
+            const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
+            checkboxes.forEach(checkbox => checkbox.checked = !allChecked);
+            selectAllButton.textContent = allChecked ? 'Select All' : 'Deselect All';
+        });
+
+        $('#country').select2({
+            placeholder: "Select a country",
+            allowClear: true
+        });
+
+        $('#institution_name').select2({
+            placeholder: "Select an institution",
+            allowClear: true
+        });
+
+        $('#country').change(function() {
+            var country_code = $(this).val();
+            console.log('Country selected:', country_code);  // Debugging statement
+            $('#institution_name').prop('disabled', true);  // Initially disable the dropdown
+            $('#institution_name').html('<option value="" disabled selected>Loading...</option>');  // Show loading message
+
+            $.ajax({
+                url: '/get_institutions',
+                data: { country_code: country_code },
+                success: function(data) {
+                    console.log('Institutions received:', data);  // Debugging statement
+                    var options = '<option value="" disabled selected>Select an institution...</option>';
+                    data.forEach(function(institution) {
+                        options += '<option value="' + institution.name + '">' + institution.name + ' (' + institution.count + ' publications)</option>';
+                    });
+                    $('#institution_name').html(options);  // Populate the dropdown
+                    $('#institution_name').prop('disabled', false);  // Enable the dropdown
+                },
+                error: function(xhr, status, error) {
+                    console.log('AJAX error:', status, error);  // Debugging statement
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
